@@ -131,7 +131,7 @@ skipNextChoice() {
 	MouseMove, 74, 930
 }
 
-p::
+]::
 	;I'll let you guess what this does
 	Run, .\DDLC.exe
 	
