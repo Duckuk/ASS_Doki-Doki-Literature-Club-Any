@@ -5,45 +5,6 @@ SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 CoordMode, Pixel
 CoordMode, Mouse
 
-natsukiPoemWords := []
-Loop, Read, .\ASS_dokidoki-any_resources\act1_natsuki_poemwords.txt
-{
-	natsukiPoemWords.Push(A_LoopReadLine)
-}
-
-composePoem(member) {
-	global
-	
-	jumpWordsPicked := 0
-	if (member = "natsuki")
-	{
-		Loop, 20 {
-			if (jumpWordsPicked < 10) {
-				for i, poemWord in natsukiPoemWords
-				{
-					ImageSearch, FoundX, FoundY, 633, 190, 1333, 848, .\ASS_dokidoki-any_resources\poem_words\%poemWord%.png
-					if (ErrorLevel = 0) {
-						Click, %FoundX%, %FoundY%
-						MouseMove, 291, 586
-						jumpWordsPicked++
-						break
-					}
-				}
-			}
-			if (ErrorLevel != 0 || jumpWordsPicked >= 10) {
-				Click, 692, 285
-				MouseMove, 291, 586
-			}
-		}
-	}
-	else
-	{
-		MsgBox % "Error, ''" . %member% . "'' is not a valid target for poems"
-		ExitApp
-	}
-	MouseMove, 74, 930
-}
-
 saveGame(slot)
 {
 	Sleep, 50
@@ -461,7 +422,10 @@ skipNextChoice() {
 	
 	;ACT 2, POEM 1
 	;Rush through poem composition
-	composePoem("natsuki")
+	Loop, 20 {
+		Sleep, 1
+		Click, 692, 285
+	}
 	Send, {Ctrl}
 	
 	;Skip through day until the 'poem showing' screen comes up.
