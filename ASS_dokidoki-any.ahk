@@ -5,11 +5,39 @@ SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 CoordMode, Pixel
 CoordMode, Mouse
 
-saveGame(slot)
-{
+if !(FileExist("DDLC.exe")) {
+	MsgBox, Unable to find DDLC.exe
+	MsgBox, Make sure the script file is in the correct folder
+	ExitApp
+}
+
+IniRead, timer, ASS_dokidoki-any.ini, Settings, timer
+IniRead, timerKey, ASS_dokidoki-any.ini, Settings, timerKey
+
+timerSplit() {
+	global
+	if (timer) {
+		Send, {%timerKey%}
+	}
+}
+
+skipNextChoice() {
+	Click, right, 872, 1002
+	Send, {Right}{Enter}
+	MouseMove, 74, 930
+}
+
+saveGame(slot) {
+	global xColour
+	global yColour
 	Sleep, 50
 	Send, {Escape}
-	Sleep, 300
+	Loop {
+		PixelSearch, xColour, yColour, 251, 385, 251, 385, 0xF4E6FF, 0, Fast
+		if (ErrorLevel = 0) {
+			break
+		}
+	}
 	if (slot = 1)
 	{
 		Click, 751, 432
@@ -46,9 +74,16 @@ saveGame(slot)
 }
 
 loadGame(slot) {
+	global xColour
+	global yColour
 	Sleep, 50
 	Send, {Escape}
-	Sleep, 300
+	Loop {
+		PixelSearch, xColour, yColour, 251, 385, 251, 385, 0xF4E6FF, 0, Fast
+		if (ErrorLevel = 0) {
+			break
+		}
+	}
 	Click, 202, 652
 	Sleep, 50
 	if (slot = 1)
@@ -80,17 +115,22 @@ loadGame(slot) {
 		MsgBox, Slot '%slot%' not valid
 		ExitApp
 	}
-	Sleep, 50
 	Send, {Right}{Enter}
-	Sleep, 300
 	MouseMove, 74, 930
 }
 
-skipNextChoice() {
-	Click, right, 872, 1002
-	Send, {Right}{Enter}
-	MouseMove, 74, 930
-}
+act3Timer:
+	PixelSearch, xColour, yColour, 1028, 860, 1028, 860, 0x000000, 0, Fast
+	if (ErrorLevel = 0) {
+		Click, Right
+		return
+	}
+	PixelSearch, xColour, yColour, 447, 870, 447, 870, 0xFFFFFF, 0, Fast
+	if (ErrorLevel = 1) {
+		Click, Right
+		return
+	}
+return
 
 ]::
 	;I'll let you guess what this does
@@ -111,51 +151,51 @@ skipNextChoice() {
 	Loop {
 		ImageSearch, FoundX, FoundY, 0, 0, %A_ScreenWidth%, %A_ScreenHeight%, .\ASS_dokidoki-any_resources\terms_agree.png
 		if (ErrorLevel = 0) {
-			Send, {Up}{Enter}
+			Send, {Up}{Enter}{Ctrl}
 			break
 		}
 		Send, {Enter}
 		Sleep, 15
 	}
 	
-	;New Game Act 1
+	;Modify settings + new game
 	Loop {
-		ImageSearch, FoundX, FoundY, 0, 0, %A_ScreenWidth%, %A_ScreenHeight%, .\ASS_dokidoki-any_resources\new-game_act1.png
+		PixelSearch, xColour, yColour, 201, 786, 201, 786, 0x9955BB, 0, Fast
 		if (ErrorLevel = 0) {
-			Send, {Down 3}{Enter}
-			Send, {Left 2}{Right}{Up 2}{Right}{Enter}{Up}{Enter}
-			Send, {Escape}{Down}{Enter}
 			break
 		}
 	}
+	Send, {Down 3}{Enter}
+	Send, {Left 2}{Right}{Up 2}{Right}{Enter}{Up}{Enter}
+	Send, {Escape}{Down}{Enter}
 	
 	;Naming Protagonist
 	Send, ASSBot
 	Send, {Down}{Enter}
-	
+	Sleep, 500
 	
 	;START OF ACT 1
 	
+	;Start timer
+	timerSplit()
+	
+	;Skip through day
 	Send, {Ctrl down}
 	Sleep, 50
 	Send, {Ctrl up}
 	
-	;Start timer
-	Send, {Numpad1}
-	
-	;Skip through day
 	skipNextChoice()
 	Sleep, 500
+	
+	;Check for poem tutorial
 	Loop {
-		;Check for poem tutorial
 		PixelSearch, xColour, yColour, 1360, 495, 1360, 495, 0xF4E6FF, 0, Fast
 		if (ErrorLevel = 0) {
-			Send, {Ctrl up}
 			Send, {Down}{Enter}
 			break
 		}
 	}
-	
+	Send, {Down}{Enter}
 	
 	;ACT 1, POEM 1
 	;Rush through poem composition
@@ -210,12 +250,12 @@ skipNextChoice() {
 	}
 	
 	;Fight happens
-	;Will pick Yuri (this choice doesn't affect anything in the game other than dialogue)
+	;Will pick Natsuki (this choice doesn't affect anything in the game other than dialogue)
 	Loop {
 		ImageSearch, FoundX, FoundY, 404, 823, 1240, 1003, .\ASS_dokidoki-any_resources\fight.png
 		if (ErrorLevel = 0) {
 			skipNextChoice()
-			Send, {Up 3}{Enter}
+			Send, {Up 4}{Enter}
 			break
 		}
 	}
@@ -387,7 +427,7 @@ skipNextChoice() {
 	
 	;Skip through rest of act until start of act 2
 	Loop {
-		ImageSearch, FoundX, FoundY, 0, 0, %A_ScreenWidth%, %A_ScreenHeight%, .\ASS_dokidoki-any_resources\new-game_act2.png
+		PixelSearch, xColour, yColour, 201, 786, 201, 786, 0x9955BB, 20, Fast
 		if (ErrorLevel = 0) {
 			break
 		}
@@ -396,11 +436,13 @@ skipNextChoice() {
 	
 	
 	;START OF ACT 2
+	timerSplit()
+	
 	;New Game Act 2
 	Send, {Down}{Enter}
 	Send, {Ctrl}
 	skipNextChoice()
-	Sleep, 1000
+	Sleep, 500
 	
 	;Select 'No' at special poem box
 	Loop {
@@ -474,21 +516,27 @@ skipNextChoice() {
 	
 	;Skip through day until we get the option of who to back up in a glitched fight.
 	Loop {
-		PixelSearch, xColour, yColour, 905, 448, 905, 448, 0xF4E6FF, 2, Fast
+		PixelSearch, xColour, yColour, 674, 355, 674, 355, 0xF4E6FF, 1, Fast
 		if (ErrorLevel = 0) {
 			break
 		}
 	}
 	
-	;Pick whoever gets highlighted as this option doesn't actually affect anything in the game
+	Send, {Ctrl down}
 	Loop {
-		ImageSearch, FoundX, FoundY, 0, 0, %A_ScreenWidth%, %A_ScreenHeight%, .\ASS_dokidoki-any_resources\fight_glitched_monika.png
+		ImageSearch, FoundX, FoundY, 396, 105, 1431, 911, .\ASS_dokidoki-any_resources\fight_glitched_monika.png
 		if (ErrorLevel = 0) {
+			Send, {Ctrl up}
 			Send, {Enter}
 			break
 		}
-		Send, {Down 2}{Enter}
-		Sleep, 15
+		if (A_Index > 7) {
+			Click, 959, 712
+		} else if (A_Index > 4) {
+			Click, 959, 496
+		} else {
+			Click, 959, 389
+		}
 	}
 	
 	;Skip through normally until skip button becomes visible
@@ -540,7 +588,7 @@ skipNextChoice() {
 		}
 	}
 	skipNextChoice()
-	Sleep, 500
+	Sleep, 150
 	
 	;Wait for "Please help me." box
 	Loop {
@@ -697,7 +745,6 @@ skipNextChoice() {
 			break
 		}
 	}
-	Sleep, 500
 	
 	saveGame(1)
 	
@@ -714,31 +761,25 @@ skipNextChoice() {
 		}
 	}
 	
+	SetTimer, act3Timer, 25
 	;Click through day until the start of act 3 (skip doesn't work here)
 	Loop {
 		ImageSearch, FoundX, FoundY, 303, 683, 1561, 1021, .\ASS_dokidoki-any_resources\monika_start-of-act-3.png
 		if (ErrorLevel = 0) {
 			break
 		}
-		Send, {Enter}
+		Click
 		Sleep, 1
-		Send, {Click}
+		Send, {Enter}
 		Sleep, 15
 	}
 	
 	
 	
 	;START OF ACT 3
-	;Click through dialogue until Monika CG (skip doesn't work here either)
-	Loop {
-		PixelSearch, xColour, yColour, 986, 370, 986, 370, 0x2B4ACB, 10, Fast
-		if (ErrorLevel = 0) {
-			break
-		}
-		Send, {Enter}
-		Sleep, 30
-	}
+	timerSplit()
 	
+	SetTimer, act3Timer, Off
 	;Immediately go to windows explorer and delete her character file
 	Run, %A_WinDir%\explorer.exe
 	Loop {
@@ -762,49 +803,48 @@ skipNextChoice() {
 	WinActivate, ahk_exe DDLC.exe
 	Sleep, 100
 	
+	SetTimer, act3Timer, 25
 	;Click through the "I still love you, no matter what" dialogue with Monika while waiting for act 4 main menu
 	Loop {
-		ImageSearch, FoundX, FoundY, 0, 0, %A_ScreenWidth%, %A_ScreenHeight%, .\ASS_dokidoki-any_resources\new-game_act1.png
+		PixelSearch, xColour, yColour, 200, 788, 200, 788, 0x9955BB, 0, Fast
 		if (ErrorLevel = 0) {
 			break
 		}
 		Send, {Enter}
 		Sleep, 30
 	}
-	
+	SetTimer, act3Timer, Off
 	
 	
 	;START OF ACT 4
+	timerSplit()
+	
 	;New Game Act 4
 	Send, {Down}{Enter}
 	Send, {Ctrl}
-	skipNextChoice()
-	Sleep, 250
 	
-	;Skip through act until skip button gets disabled
+	;Skip through day
 	skipNextChoice()
-	Loop {
-		PixelSearch, xColour, yColour, 959, 603, 959, 603, 0xF4E6FF, 0, Fast
-		if (ErrorLevel = 0) {
-			break
+	
+	Sleep, 500
+	
+	;Click through boxes
+	Loop, 7 {
+		Loop {
+			PixelSearch, xColour, yColour, 953, 629, 953, 629, 0xF4E6FF, 0, Fast
+			if (ErrorLevel = 0) {
+				Send, {Down}{Enter}
+				skipNextChoice()
+				Sleep, 70
+				break
+			}
 		}
 	}
 	
-	Send, {Right}{Enter}
-	Sleep, 50
-	skipNextChoice()
-	Sleep, 50
-	Send, {Right}{Enter}
-	Sleep, 50
-	skipNextChoice()
-	Sleep, 50
-	Send, {Right}{Enter 5}
-	Sleep, 50
-	skipNextChoice()
-	
-	;Stop timer
-	Sleep, 1000
-	Send, {Numpad1}
+	Send, {Ctrl down}
+	Sleep, 250
+	Send, {Ctrl up}
+	timerSplit()
 return
 
 ;Emergency exit in case the script goes wild and starts doing things that I don't want it to do
