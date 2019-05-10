@@ -405,7 +405,7 @@ return
 		ImageSearch, FoundX, FoundY, 404, 823, 1240, 1003, .\ASS_dokidoki-any_resources\sayori_confession.png
 		if (ErrorLevel = 0) {
 			skipNextChoice()
-			Send, {Up 2}{Enter}
+			Send, {Up 3}{Enter}
 			break
 		}
 	}
