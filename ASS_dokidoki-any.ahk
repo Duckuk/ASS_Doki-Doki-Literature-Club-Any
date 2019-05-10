@@ -255,7 +255,7 @@ return
 		ImageSearch, FoundX, FoundY, 404, 823, 1240, 1003, .\ASS_dokidoki-any_resources\fight.png
 		if (ErrorLevel = 0) {
 			skipNextChoice()
-			Send, {Up 4}{Enter}
+			Send, {Up 5}{Enter}
 			break
 		}
 	}
